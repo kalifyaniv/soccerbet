@@ -32,7 +32,7 @@ export default async function AdminDashboard() {
         <StatCard icon={<Users size={20} />} label="משתתפים" value={totalPlayers} color="blue" />
         <StatCard icon={<ListChecks size={20} />} label="הימורים נעולים" value={lockedBets} color="green" />
         <StatCard icon={<ListChecks size={20} />} label="משחקים הושלמו" value={completedMatches} color="yellow" />
-        <StatCard icon={<DollarSign size={20} />} label="קופת פרסים" value={`₪${event?.totalPrizePool ?? 0}`} color="purple" />
+        <StatCard icon={<DollarSign size={20} />} label="קופת פרסים" value={`₪${((event?.totalPlayers ?? 0) * (event?.entryFee ?? 200)).toLocaleString()}`} color="purple" />
       </div>
 
       {/* Multiplier games */}
@@ -74,7 +74,7 @@ export default async function AdminDashboard() {
           href="/admin/payout"
           icon={<DollarSign size={24} />}
           title="דוח תשלומים"
-          desc={`קופה: ₪${event?.totalPrizePool ?? 0}`}
+          desc={`קופה: ₪${((event?.totalPlayers ?? 0) * (event?.entryFee ?? 200)).toLocaleString()}`}
           color="purple"
         />
       </div>

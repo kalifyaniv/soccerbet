@@ -18,7 +18,7 @@ export default async function PayoutPage() {
   if (!isAdmin) redirect("/leaderboard");
 
   const event = await prisma.event.findUnique({ where: { id: EVENT_ID } });
-  const pool = event?.totalPrizePool ?? 0;
+  const pool = (event?.totalPlayers ?? 0) * (event?.entryFee ?? 200);
 
   // Build payout table server-side (mirrors the API logic)
   const payouts: { category: string; winnerName: string | null; amount: number; pct: string }[] = [];

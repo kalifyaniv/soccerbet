@@ -161,6 +161,7 @@ async function main() {
       groupStageEnd: new Date("2026-06-27"),
       bettingDeadline: new Date("2026-06-10T23:59:59"),
       entryFee: 200,
+      totalPlayers: 0,
       status: "active",
     },
   });

@@ -76,7 +76,7 @@ model Event {
   bettingDeadline DateTime
   entryFee        Float    @default(200)
   totalPlayers    Int      @default(0)
-  totalPrizePool  Float?
+  // totalPrizePool removed — calculated at runtime as totalPlayers * entryFee
   // Set by admin after each stage:
   actualTopScorer String?
   actualWinner    String?

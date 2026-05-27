@@ -44,7 +44,6 @@ export async function POST(req: NextRequest) {
         where: { id: eventId },
         data: {
           totalPlayers: { increment: 1 },
-          totalPrizePool: { increment: 200 },
         },
       });
 

@@ -24,7 +24,7 @@ export async function GET(
   const event = await prisma.event.findUnique({ where: { id: eventId } });
   if (!event) return Response.json({ error: "Event not found" }, { status: 404 });
 
-  const pool = event.totalPrizePool ?? 0;
+  const pool = event.totalPlayers * event.entryFee;
   const payouts: PayoutEntry[] = [];
 
   // ── Per-בית winners (5% each) ──────────────────────────────────────────

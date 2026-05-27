@@ -78,7 +78,7 @@ export default async function LeaderboardPage() {
           <div className="text-left bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm">
             <div className="text-gray-400">קופת פרסים</div>
             <div className="text-2xl font-bold text-green-400">
-              ₪{(event.totalPrizePool ?? 0).toLocaleString()}
+              ₪{(event.totalPlayers * event.entryFee).toLocaleString()}
             </div>
           </div>
         )}
@@ -192,7 +192,7 @@ export default async function LeaderboardPage() {
       )}
 
       {/* Prize breakdown */}
-      {event && <PrizeBreakdown pool={event.totalPrizePool ?? 0} />}
+      {event && <PrizeBreakdown pool={event.totalPlayers * event.entryFee} />}
     </div>
   );
 }
