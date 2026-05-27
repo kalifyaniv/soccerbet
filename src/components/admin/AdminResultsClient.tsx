@@ -12,6 +12,7 @@ interface MatchRow {
   teamA: string;
   teamB: string;
   matchDate: string | null;
+  matchDateLabel: string | null;
   status: string;
   finalScoreA: number | null;
   finalScoreB: number | null;
@@ -29,6 +30,7 @@ const GROUP_COLORS: Record<string, string> = {
   E: "#14b8a6", F: "#3b82f6", G: "#8b5cf6", H: "#ec4899",
   I: "#6366f1", J: "#f59e0b", K: "#10b981", L: "#64748b",
 };
+
 
 export default function AdminResultsClient({
   eventId,
@@ -162,9 +164,16 @@ export default function AdminResultsClient({
                       <span className="text-gray-500 text-xs w-6 shrink-0">#{m.matchNumber}</span>
 
                       <div className="flex-1">
-                        <span className="text-gray-200">{m.teamA}</span>
-                        <span className="text-gray-500 mx-2">vs</span>
-                        <span className="text-gray-200">{m.teamB}</span>
+                        <div>
+                          <span className="text-gray-200">{m.teamA}</span>
+                          <span className="text-gray-500 mx-2">vs</span>
+                          <span className="text-gray-200">{m.teamB}</span>
+                        </div>
+                        {m.matchDateLabel && (
+                          <div className="text-xs text-gray-500 mt-0.5 text-end" dir="ltr">
+                            🕐 {m.matchDateLabel} IL
+                          </div>
+                        )}
                       </div>
 
                       {/* Result or edit */}
