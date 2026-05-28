@@ -41,70 +41,83 @@ describe("calculateMatchPoints – exact score (7 pts)", () => {
   });
 });
 
-describe("calculateMatchPoints – correct winner AND correct gap (4 pts)", () => {
-  it("predicted 3–1 (home win, gap 2), actual 2–0 (home win, gap 2)", () => {
-    const r = calculateMatchPoints({ a: 3, b: 1 }, { a: 2, b: 0 }, false);
+describe("calculateMatchPoints – correct winner AND exact goals for one team (4 pts)", () => {
+  it("predicted 2–1, actual 3–1 (home win, away goals match)", () => {
+    const r = calculateMatchPoints({ a: 2, b: 1 }, { a: 3, b: 1 }, false);
     expect(r.basePoints).toBe(4);
-    expect(r.scoringMethod).toBe("trend_and_gap");
+    expect(r.scoringMethod).toBe("winner_and_goal");
   });
 
-  it("predicted 0–2, actual 1–3 (both away wins, gap 2)", () => {
-    const r = calculateMatchPoints({ a: 0, b: 2 }, { a: 1, b: 3 }, false);
+  it("predicted 2–0, actual 1–0 (home win, away goals match at 0)", () => {
+    const r = calculateMatchPoints({ a: 2, b: 0 }, { a: 1, b: 0 }, false);
     expect(r.basePoints).toBe(4);
-    expect(r.scoringMethod).toBe("trend_and_gap");
+    expect(r.scoringMethod).toBe("winner_and_goal");
   });
 
-  it("predicted 2–2, actual 1–1 (both draws, gap 0)", () => {
-    const r = calculateMatchPoints({ a: 2, b: 2 }, { a: 1, b: 1 }, false);
+  it("predicted 0–2, actual 0–3 (away win, home goals match at 0)", () => {
+    const r = calculateMatchPoints({ a: 0, b: 2 }, { a: 0, b: 3 }, false);
     expect(r.basePoints).toBe(4);
-    expect(r.scoringMethod).toBe("trend_and_gap");
+    expect(r.scoringMethod).toBe("winner_and_goal");
+  });
+
+  it("predicted 1–1, actual 1–2 — wrong winner but home goals match → 1 pt not 4", () => {
+    const r = calculateMatchPoints({ a: 1, b: 1 }, { a: 1, b: 2 }, false);
+    expect(r.basePoints).toBe(1);
   });
 
   it("doubles to 8 on multiplier", () => {
-    const r = calculateMatchPoints({ a: 3, b: 1 }, { a: 2, b: 0 }, true);
+    const r = calculateMatchPoints({ a: 2, b: 1 }, { a: 3, b: 1 }, true);
     expect(r.finalPoints).toBe(8);
   });
 });
 
-describe("calculateMatchPoints – correct winner OR correct gap (3 pts)", () => {
-  it("correct winner, wrong gap (predicted 2–0 gap 2, actual 1–0 gap 1)", () => {
-    const r = calculateMatchPoints({ a: 2, b: 0 }, { a: 1, b: 0 }, false);
+describe("calculateMatchPoints – correct winner only (3 pts)", () => {
+  it("correct winner, no goal match (predicted 3–1 home win, actual 2–0 home win)", () => {
+    const r = calculateMatchPoints({ a: 3, b: 1 }, { a: 2, b: 0 }, false);
     expect(r.basePoints).toBe(3);
-    expect(r.scoringMethod).toBe("winner_or_gap");
+    expect(r.scoringMethod).toBe("winner_only");
   });
 
-  it("wrong winner, same gap (predicted 2–0 home win gap 2, actual 0–2 away win gap 2)", () => {
-    const r = calculateMatchPoints({ a: 2, b: 0 }, { a: 0, b: 2 }, false);
+  it("predicted 2–1, actual 3–0 — home wins both but no goal match", () => {
+    const r = calculateMatchPoints({ a: 2, b: 1 }, { a: 3, b: 0 }, false);
     expect(r.basePoints).toBe(3);
-    expect(r.scoringMethod).toBe("winner_or_gap");
-  });
-
-  it("predicted draw, actual home win — only gap matches (both 0?)", () => {
-    // predicted 1–1 (draw, gap 0), actual 2–1 (home win, gap 1) → neither matches
-    const r = calculateMatchPoints({ a: 1, b: 1 }, { a: 2, b: 1 }, false);
-    expect(r.basePoints).toBe(0);
-  });
-
-  it("predicted 1–0 (home win, gap 1), actual 2–2 (draw, gap 0) → only gap ≠, winner ≠ → 0", () => {
-    const r = calculateMatchPoints({ a: 1, b: 0 }, { a: 2, b: 2 }, false);
-    expect(r.basePoints).toBe(0);
+    expect(r.scoringMethod).toBe("winner_only");
   });
 
   it("doubles to 6 on multiplier", () => {
-    const r = calculateMatchPoints({ a: 2, b: 0 }, { a: 1, b: 0 }, true);
+    const r = calculateMatchPoints({ a: 3, b: 1 }, { a: 2, b: 0 }, true);
     expect(r.finalPoints).toBe(6);
   });
 });
 
+describe("calculateMatchPoints – goal match only, wrong winner (1 pt)", () => {
+  it("predicted 2–1 Brazil win, actual 0–1 Switzerland win — away goals match", () => {
+    const r = calculateMatchPoints({ a: 2, b: 1 }, { a: 0, b: 1 }, false);
+    expect(r.basePoints).toBe(1);
+    expect(r.scoringMethod).toBe("goal_only");
+  });
+
+  it("predicted 1–1 draw, actual 1–2 away win — home goals match", () => {
+    const r = calculateMatchPoints({ a: 1, b: 1 }, { a: 1, b: 2 }, false);
+    expect(r.basePoints).toBe(1);
+    expect(r.scoringMethod).toBe("goal_only");
+  });
+
+  it("doubles to 2 on multiplier", () => {
+    const r = calculateMatchPoints({ a: 2, b: 1 }, { a: 0, b: 1 }, true);
+    expect(r.finalPoints).toBe(2);
+  });
+});
+
 describe("calculateMatchPoints – completely wrong (0 pts)", () => {
-  it("predicted home win, actual away win, different gaps", () => {
+  it("predicted home win, actual away win, no goal match", () => {
     const r = calculateMatchPoints({ a: 2, b: 1 }, { a: 0, b: 3 }, false);
     expect(r.basePoints).toBe(0);
     expect(r.scoringMethod).toBe("wrong");
   });
 
-  it("predicted draw, actual home win with gap 1", () => {
-    const r = calculateMatchPoints({ a: 1, b: 1 }, { a: 2, b: 1 }, false);
+  it("predicted draw, actual home win, no goal match", () => {
+    const r = calculateMatchPoints({ a: 2, b: 2 }, { a: 3, b: 1 }, false);
     expect(r.basePoints).toBe(0);
     expect(r.scoringMethod).toBe("wrong");
   });

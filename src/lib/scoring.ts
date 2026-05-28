@@ -5,8 +5,9 @@ export type Score = { a: number; b: number };
 
 export type ScoringMethod =
   | "exact"
-  | "trend_and_gap"
-  | "winner_or_gap"
+  | "winner_and_goal"
+  | "winner_only"
+  | "goal_only"
   | "wrong";
 
 export interface MatchResult {
@@ -22,9 +23,9 @@ export interface MatchResult {
  *
  * Point table:
  *   7 pts  – exact score
- *   4 pts  – correct winner AND correct goal gap
- *   3 pts  – correct winner OR correct goal gap (not both)
- *   1 pt   – technically unreachable via logic but kept for safety
+ *   4 pts  – correct winner AND exact goals for at least one team
+ *   3 pts  – correct winner only (no goal match)
+ *   1 pt   – exact goals for at least one team, wrong winner
  *   0 pts  – completely wrong
  *
  * All values doubled when isMultiplier = true.
@@ -36,8 +37,8 @@ export function calculateMatchPoints(
 ): MatchResult {
   const predWinner = Math.sign(prediction.a - prediction.b); // -1, 0, +1
   const actualWinner = Math.sign(actual.a - actual.b);
-  const predGap = Math.abs(prediction.a - prediction.b);
-  const actualGap = Math.abs(actual.a - actual.b);
+  const goalMatch = prediction.a === actual.a || prediction.b === actual.b;
+  const winnerMatch = predWinner === actualWinner;
 
   let basePoints: number;
   let scoringMethod: ScoringMethod;
@@ -45,13 +46,15 @@ export function calculateMatchPoints(
   if (prediction.a === actual.a && prediction.b === actual.b) {
     basePoints = 7;
     scoringMethod = "exact";
-  } else if (predWinner === actualWinner && predGap === actualGap) {
-    // Same winner direction + same margin, but different absolute scores
+  } else if (winnerMatch && goalMatch) {
     basePoints = 4;
-    scoringMethod = "trend_and_gap";
-  } else if (predWinner === actualWinner || predGap === actualGap) {
+    scoringMethod = "winner_and_goal";
+  } else if (winnerMatch) {
     basePoints = 3;
-    scoringMethod = "winner_or_gap";
+    scoringMethod = "winner_only";
+  } else if (goalMatch) {
+    basePoints = 1;
+    scoringMethod = "goal_only";
   } else {
     basePoints = 0;
     scoringMethod = "wrong";
