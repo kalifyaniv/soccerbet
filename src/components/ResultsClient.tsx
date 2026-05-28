@@ -51,7 +51,7 @@ const GROUP_COLORS: Record<string, string> = {
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function ResultsClient({ matches, totalPts, hasPlayer, completedCount }: Props) {
-  const [view, setView] = useState<"group" | "date">("group");
+  const [view, setView] = useState<"group" | "date">("date");
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   const toggleExpand = (n: number) =>
