@@ -9,7 +9,7 @@ export async function GET(
   const { eventId } = await params;
 
   const players = await prisma.player.findMany({
-    where: { eventId },
+    where: { eventId, user: { disabled: false } },
     include: {
       playerBet: {
         select: {

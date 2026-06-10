@@ -21,7 +21,7 @@ export default async function LeaderboardPage() {
   const currentEmail = session.user?.email ?? "";
 
   const players = await prisma.player.findMany({
-    where: { eventId: EVENT_ID },
+    where: { eventId: EVENT_ID, user: { disabled: false } },
     include: {
       playerBet: {
         select: {
@@ -41,12 +41,14 @@ export default async function LeaderboardPage() {
     where: { eventId: EVENT_ID, status: "completed" },
   });
 
-  // Per-בית leaders: for each WC group letter, find the player(s) with the most points
+  // Derive active player IDs from the already-fetched players list (no extra query needed)
+  const activePlayerIds = players.map((p) => p.id);
+
   const groupLeaders: Record<string, { name: string; pts: number }[]> = {};
   for (const letter of GROUP_LETTERS) {
     const logs = await prisma.pointLog.groupBy({
       by: ["playerId"],
-      where: { eventId: EVENT_ID, groupLetter: letter },
+      where: { eventId: EVENT_ID, groupLetter: letter, playerId: { in: activePlayerIds } },
       _sum: { finalPoints: true },
       orderBy: { _sum: { finalPoints: "desc" } },
       take: 3,
@@ -78,7 +80,7 @@ export default async function LeaderboardPage() {
           <div className="text-left bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm">
             <div className="text-gray-400">קופת פרסים</div>
             <div className="text-2xl font-bold text-green-400">
-              ₪{(event.totalPlayers * event.entryFee).toLocaleString()}
+              ₪{(players.length * event.entryFee).toLocaleString()}
             </div>
           </div>
         )}
@@ -192,7 +194,7 @@ export default async function LeaderboardPage() {
       )}
 
       {/* Prize breakdown */}
-      {event && <PrizeBreakdown pool={event.totalPlayers * event.entryFee} />}
+      {event && <PrizeBreakdown pool={players.length * event.entryFee} />}
     </div>
   );
 }

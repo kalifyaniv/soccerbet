@@ -31,6 +31,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.password
         );
         if (!valid) return null;
+        if (user.disabled) return null;
 
         return {
           id: user.id,

@@ -24,8 +24,15 @@ export async function GET(
   const event = await prisma.event.findUnique({ where: { id: eventId } });
   if (!event) return Response.json({ error: "Event not found" }, { status: 404 });
 
-  const pool = event.totalPlayers * event.entryFee;
   const payouts: PayoutEntry[] = [];
+
+  // Collect active (non-disabled) player IDs and derive pool from their count
+  const activePlayers = await prisma.player.findMany({
+    where: { eventId, user: { disabled: false } },
+    select: { id: true },
+  });
+  const activeIds = activePlayers.map((p) => p.id);
+  const pool = activeIds.length * event.entryFee;
 
   // ── Per-בית winners (5% each) ──────────────────────────────────────────
   // Winner of בית X = player with highest sum(finalPoints) on matches where groupLetter = X
@@ -33,7 +40,7 @@ export async function GET(
     // Sum points per player for matches in this WC group
     const logs = await prisma.pointLog.groupBy({
       by: ["playerId"],
-      where: { eventId, groupLetter: letter },
+      where: { eventId, groupLetter: letter, playerId: { in: activeIds } },
       _sum: { finalPoints: true },
       orderBy: { _sum: { finalPoints: "desc" } },
     });
@@ -64,7 +71,7 @@ export async function GET(
 
   // ── Overall top scorer (20%) ─────────────────────────────────────────────
   const allPlayers = await prisma.player.findMany({
-    where: { eventId },
+    where: { eventId, user: { disabled: false } },
     orderBy: { totalPoints: "desc" },
     select: { name: true, totalPoints: true },
   });
@@ -81,7 +88,7 @@ export async function GET(
 
   // ── King of Goals (10%) ──────────────────────────────────────────────────
   const kogWinners = await prisma.bonusLog.findMany({
-    where: { eventId, kingOfGoalsPoints: 10 },
+    where: { eventId, kingOfGoalsPoints: 10, player: { user: { disabled: false } } },
     include: { player: { select: { name: true } } },
   });
   const kogNames = kogWinners.length > 0 ? kogWinners.map((w) => w.player.name).join(", ") : null;
@@ -92,7 +99,7 @@ export async function GET(
 
   // ── Tournament winner (10%) ──────────────────────────────────────────────
   const twWinners = await prisma.bonusLog.findMany({
-    where: { eventId, tournamentWinnerPoints: 10 },
+    where: { eventId, tournamentWinnerPoints: 10, player: { user: { disabled: false } } },
     include: { player: { select: { name: true } } },
   });
   const twNames = twWinners.length > 0 ? twWinners.map((w) => w.player.name).join(", ") : null;

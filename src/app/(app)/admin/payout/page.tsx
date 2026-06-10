@@ -18,7 +18,14 @@ export default async function PayoutPage() {
   if (!isAdmin) redirect("/leaderboard");
 
   const event = await prisma.event.findUnique({ where: { id: EVENT_ID } });
-  const pool = (event?.totalPlayers ?? 0) * (event?.entryFee ?? 200);
+
+  // Derive pool from live active player count, not the stored counter
+  const activePlayers = await prisma.player.findMany({
+    where: { eventId: EVENT_ID, user: { disabled: false } },
+    select: { id: true },
+  });
+  const activeIds = activePlayers.map((p) => p.id);
+  const pool = activeIds.length * (event?.entryFee ?? 200);
 
   // Build payout table server-side (mirrors the API logic)
   const payouts: { category: string; winnerName: string | null; amount: number; pct: string }[] = [];
@@ -27,7 +34,7 @@ export default async function PayoutPage() {
   for (const letter of GROUP_LETTERS) {
     const logs = await prisma.pointLog.groupBy({
       by: ["playerId"],
-      where: { eventId: EVENT_ID, groupLetter: letter },
+      where: { eventId: EVENT_ID, groupLetter: letter, playerId: { in: activeIds } },
       _sum: { finalPoints: true },
       orderBy: { _sum: { finalPoints: "desc" } },
     });
@@ -50,7 +57,7 @@ export default async function PayoutPage() {
 
   // Overall
   const topPlayer = await prisma.player.findFirst({
-    where: { eventId: EVENT_ID },
+    where: { eventId: EVENT_ID, user: { disabled: false } },
     orderBy: { totalPoints: "desc" },
     select: { name: true, totalPoints: true },
   });
@@ -63,7 +70,7 @@ export default async function PayoutPage() {
 
   // King of Goals
   const kogWinners = await prisma.bonusLog.findMany({
-    where: { eventId: EVENT_ID, kingOfGoalsPoints: 10 },
+    where: { eventId: EVENT_ID, kingOfGoalsPoints: 10, player: { user: { disabled: false } } },
     include: { player: { select: { name: true } } },
   });
   payouts.push({
@@ -75,7 +82,7 @@ export default async function PayoutPage() {
 
   // Tournament winner
   const twWinners = await prisma.bonusLog.findMany({
-    where: { eventId: EVENT_ID, tournamentWinnerPoints: 10 },
+    where: { eventId: EVENT_ID, tournamentWinnerPoints: 10, player: { user: { disabled: false } } },
     include: { player: { select: { name: true } } },
   });
   payouts.push({
@@ -89,7 +96,7 @@ export default async function PayoutPage() {
 
   // Players for reference
   const players = await prisma.player.findMany({
-    where: { eventId: EVENT_ID },
+    where: { eventId: EVENT_ID, user: { disabled: false } },
     orderBy: { totalPoints: "desc" },
     take: 15,
   });

@@ -30,7 +30,7 @@ export default async function ResultsPage() {
   const [matches, allPlayers, allPointLogs, currentPlayer] = await Promise.all([
     prisma.match.findMany({ where: { eventId: EVENT_ID }, orderBy: { matchNumber: "asc" } }),
     prisma.player.findMany({
-      where: { eventId: EVENT_ID },
+      where: { eventId: EVENT_ID, user: { disabled: false } },
       include: { playerBet: true },
       orderBy: { name: "asc" },
     }),
