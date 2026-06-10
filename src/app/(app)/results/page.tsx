@@ -27,7 +27,7 @@ export default async function ResultsPage() {
 
   const currentEmail = session.user.email;
 
-  const [matches, allPlayers, allPointLogs, currentPlayer, multiplierGameRecord] = await Promise.all([
+  const [matches, allPlayers, allPointLogs, currentPlayer] = await Promise.all([
     prisma.match.findMany({ where: { eventId: EVENT_ID }, orderBy: { matchNumber: "asc" } }),
     prisma.player.findMany({
       where: { eventId: EVENT_ID, user: { disabled: false } },
@@ -39,12 +39,16 @@ export default async function ResultsPage() {
       where: { eventId_email: { eventId: EVENT_ID, email: currentEmail } },
       include: { playerBet: true },
     }),
-    prisma.multiplierGame.findUnique({ where: { eventId: EVENT_ID } }),
   ]);
 
-  const multiplierMatchNumbers: number[] = multiplierGameRecord
-    ? JSON.parse(multiplierGameRecord.matchNumbers)
-    : [];
+  // Union of all locked players' multiplier picks — a match is a multiplier for everyone if any player chose it
+  const multiplierMatchNumbers = new Set<number>(
+    allPlayers.flatMap((p) =>
+      p.playerBet?.status === "locked"
+        ? (JSON.parse(p.playerBet.multiplierGames || "[]") as number[])
+        : []
+    )
+  );
 
   // Current player's bets
   const myPredictions: Record<string, { a: number; b: number }> = currentPlayer?.playerBet
@@ -102,7 +106,7 @@ export default async function ResultsPage() {
           predB: pPred?.b ?? null,
           points: pLog?.finalPoints ?? null,
           method: pLog?.scoringMethod ?? null,
-          isMultiplier: multiplierMatchNumbers.includes(m.matchNumber),
+          isMultiplier: multiplierMatchNumbers.has(m.matchNumber),
         };
       })
       // "me" first, then alphabetical
@@ -122,7 +126,7 @@ export default async function ResultsPage() {
       myPred: myPred ? { a: myPred.a, b: myPred.b } : null,
       myPoints: myLog?.finalPoints ?? null,
       myMethod: myLog?.scoringMethod ?? null,
-      isMyMultiplier: multiplierMatchNumbers.includes(m.matchNumber),
+      isMyMultiplier: multiplierMatchNumbers.has(m.matchNumber),
       participantBets,
     };
   });

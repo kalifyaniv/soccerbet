@@ -185,10 +185,15 @@ export default function ResultsClient({ matches, totalPts, hasPlayer, completedC
 
                   {/* Teams + time */}
                   <div className="flex-1 min-w-0">
-                    <div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-gray-200">{m.teamA}</span>
-                      <span className="text-gray-500 mx-2">vs</span>
+                      <span className="text-gray-500 mx-1">vs</span>
                       <span className="text-gray-200">{m.teamB}</span>
+                      {m.isMyMultiplier && (
+                        <span className="inline-flex items-center gap-0.5 text-xs font-bold text-yellow-400 bg-yellow-900/30 border border-yellow-700/50 px-1.5 py-0.5 rounded">
+                          <Zap size={10} />×2
+                        </span>
+                      )}
                     </div>
                     {m.matchDateLabel && (
                       <div className="text-xs text-gray-500 mt-0.5 text-end" dir="ltr">
@@ -333,10 +338,15 @@ function MatchRowGroup({
         <span className="text-gray-500 text-xs w-6 shrink-0">#{m.matchNumber}</span>
 
         <div className="flex-1 min-w-0">
-          <div>
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-gray-200">{m.teamA}</span>
-            <span className="text-gray-500 mx-2">vs</span>
+            <span className="text-gray-500 mx-1">vs</span>
             <span className="text-gray-200">{m.teamB}</span>
+            {m.isMyMultiplier && (
+              <span className="inline-flex items-center gap-0.5 text-xs font-bold text-yellow-400 bg-yellow-900/30 border border-yellow-700/50 px-1.5 py-0.5 rounded">
+                <Zap size={10} />×2
+              </span>
+            )}
           </div>
           {m.matchDateLabel && (
             <div className="text-xs text-gray-500 mt-0.5 text-end" dir="ltr">

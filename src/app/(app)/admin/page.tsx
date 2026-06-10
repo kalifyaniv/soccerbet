@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Settings, ListChecks, DollarSign, Users } from "lucide-react";
+import { Settings, ListChecks, DollarSign, Users, Download } from "lucide-react";
 
 const EVENT_ID = "wc2026";
 
@@ -12,7 +12,7 @@ export default async function AdminDashboard() {
   if (!isAdmin) redirect("/leaderboard");
 
   const event = await prisma.event.findUnique({ where: { id: EVENT_ID } });
-  const totalPlayers = await prisma.player.count({ where: { eventId: EVENT_ID } });
+  const totalPlayers = await prisma.player.count({ where: { eventId: EVENT_ID, user: { disabled: false } } });
   const lockedBets = await prisma.playerBet.count({ where: { eventId: EVENT_ID, status: "locked" } });
   const completedMatches = await prisma.match.count({ where: { eventId: EVENT_ID, status: "completed" } });
   const pendingMatches = await prisma.match.count({ where: { eventId: EVENT_ID, status: "scheduled" } });
@@ -32,7 +32,7 @@ export default async function AdminDashboard() {
         <StatCard icon={<Users size={20} />} label="משתתפים" value={totalPlayers} color="blue" />
         <StatCard icon={<ListChecks size={20} />} label="הימורים נעולים" value={lockedBets} color="green" />
         <StatCard icon={<ListChecks size={20} />} label="משחקים הושלמו" value={completedMatches} color="yellow" />
-        <StatCard icon={<DollarSign size={20} />} label="קופת פרסים" value={`₪${((event?.totalPlayers ?? 0) * (event?.entryFee ?? 200)).toLocaleString()}`} color="purple" />
+        <StatCard icon={<DollarSign size={20} />} label="קופת פרסים" value={`₪${(totalPlayers * (event?.entryFee ?? 200)).toLocaleString()}`} color="purple" />
       </div>
 
       {/* Multiplier games */}
@@ -55,7 +55,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Quick links */}
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <AdminLink
           href="/admin/results"
           icon={<ListChecks size={24} />}
@@ -74,9 +74,19 @@ export default async function AdminDashboard() {
           href="/admin/payout"
           icon={<DollarSign size={24} />}
           title="דוח תשלומים"
-          desc={`קופה: ₪${((event?.totalPlayers ?? 0) * (event?.entryFee ?? 200)).toLocaleString()}`}
+          desc={`קופה: ₪${(totalPlayers * (event?.entryFee ?? 200)).toLocaleString()}`}
           color="purple"
         />
+        <a
+          href="/api/admin/export/bets"
+          className="bg-gray-900 border border-orange-800 hover:border-orange-600 hover:bg-orange-900/10 rounded-xl p-5 transition-all group"
+        >
+          <div className="text-gray-400 group-hover:text-white transition-colors mb-3">
+            <Download size={24} />
+          </div>
+          <div className="font-semibold text-white">ייצוא הימורים</div>
+          <div className="text-sm text-gray-500 mt-1">הורד CSV של כל ההימורים</div>
+        </a>
       </div>
     </div>
   );
