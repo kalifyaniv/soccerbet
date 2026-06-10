@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import ResultsClient, { MatchRow } from "@/components/ResultsClient";
+import ResultsClient, { BonusData, MatchRow } from "@/components/ResultsClient";
 
 const EVENT_ID = "wc2026";
 export const revalidate = 60;
@@ -31,7 +31,7 @@ export default async function ResultsPage() {
     prisma.match.findMany({ where: { eventId: EVENT_ID }, orderBy: { matchNumber: "asc" } }),
     prisma.player.findMany({
       where: { eventId: EVENT_ID, user: { disabled: false } },
-      include: { playerBet: true },
+      include: { playerBet: true, bonusLog: true },
       orderBy: { name: "asc" },
     }),
     prisma.pointLog.findMany({ where: { eventId: EVENT_ID } }),
@@ -62,6 +62,26 @@ export default async function ResultsPage() {
   const totalPts = allPointLogs
     .filter((l) => l.playerId === currentPlayer?.id)
     .reduce((s, l) => s + l.finalPoints, 0);
+
+  const anyBonusLog = allPlayers.find(
+    (p) => p.bonusLog?.actualTopScorer || p.bonusLog?.actualWinner
+  )?.bonusLog;
+
+  const bonusData: BonusData = {
+    actualTopScorer: anyBonusLog?.actualTopScorer ?? null,
+    actualWinner: anyBonusLog?.actualWinner ?? null,
+    participantBets: allPlayers
+      .filter((p) => p.playerBet?.status === "locked")
+      .map((p) => ({
+        playerName: p.name,
+        isMe: p.email === currentEmail,
+        topScorer: p.playerBet?.kingOfGoalsPlayer || null,
+        topScorerPoints: p.bonusLog?.kingOfGoalsPoints ?? null,
+        tournamentWinner: p.playerBet?.tournamentWinner || null,
+        tournamentWinnerPoints: p.bonusLog?.tournamentWinnerPoints ?? null,
+      }))
+      .sort((a, b) => (b.isMe ? 1 : 0) - (a.isMe ? 1 : 0)),
+  };
 
   const matchRows: MatchRow[] = matches.map((m) => {
     const myPred = myPredictions[m.matchNumber.toString()] ?? null;
@@ -113,6 +133,7 @@ export default async function ResultsPage() {
       totalPts={totalPts}
       hasPlayer={!!currentPlayer}
       completedCount={completedCount}
+      bonusData={bonusData}
     />
   );
 }

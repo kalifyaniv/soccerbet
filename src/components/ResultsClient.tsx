@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle, Clock, Zap, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { CheckCircle, Clock, Zap, ChevronDown, ChevronUp, Users, Trophy, Target } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -13,6 +13,21 @@ export type ParticipantBet = {
   points: number | null;
   method: string | null;
   isMultiplier: boolean;
+};
+
+export type BonusBetRow = {
+  playerName: string;
+  isMe: boolean;
+  topScorer: string | null;
+  topScorerPoints: number | null;
+  tournamentWinner: string | null;
+  tournamentWinnerPoints: number | null;
+};
+
+export type BonusData = {
+  actualTopScorer: string | null;
+  actualWinner: string | null;
+  participantBets: BonusBetRow[];
 };
 
 export type MatchRow = {
@@ -38,6 +53,7 @@ interface Props {
   totalPts: number;
   hasPlayer: boolean;
   completedCount: number;
+  bonusData: BonusData;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -50,7 +66,7 @@ const GROUP_COLORS: Record<string, string> = {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function ResultsClient({ matches, totalPts, hasPlayer, completedCount }: Props) {
+export default function ResultsClient({ matches, totalPts, hasPlayer, completedCount, bonusData }: Props) {
   const [view, setView] = useState<"group" | "date">("date");
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
@@ -141,6 +157,9 @@ export default function ResultsClient({ matches, totalPts, hasPlayer, completedC
           })}
         </div>
       )}
+
+      {/* ── Bonus bets section ── */}
+      <BonusSection bonusData={bonusData} />
 
       {/* ── Date view ── */}
       {view === "date" && (
@@ -435,6 +454,95 @@ function MatchRowGroup({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+function BonusSection({ bonusData }: { bonusData: BonusData }) {
+  const { actualTopScorer, actualWinner, participantBets } = bonusData;
+
+  if (participantBets.length === 0) return null;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Trophy size={16} className="text-yellow-400" />
+        <h2 className="text-sm font-semibold text-gray-300">הימורי בונוס</h2>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Top Scorer */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800">
+            <Target size={14} className="text-orange-400" />
+            <span className="text-sm font-semibold text-orange-300">מלך השערים</span>
+            {actualTopScorer && (
+              <span className="mr-auto text-xs font-mono text-white bg-orange-900/40 border border-orange-700/40 px-2 py-0.5 rounded">
+                {actualTopScorer}
+              </span>
+            )}
+          </div>
+          <div className="divide-y divide-gray-800">
+            {participantBets.map((bet, i) => (
+              <div
+                key={i}
+                className={`flex items-center gap-3 px-4 py-2.5 text-xs ${
+                  bet.isMe ? "bg-green-900/20" : ""
+                }`}
+              >
+                <span className={`flex-1 font-medium ${bet.isMe ? "text-green-300" : "text-gray-300"}`}>
+                  {bet.playerName}
+                  {bet.isMe && <span className="text-green-500 font-normal mr-1"> (אני)</span>}
+                </span>
+                <span className="text-gray-400 font-mono truncate max-w-[120px] text-left" dir="ltr">
+                  {bet.topScorer || "—"}
+                </span>
+                {bet.topScorerPoints != null && (
+                  <span className={`font-bold w-8 text-right ${bet.topScorerPoints > 0 ? "text-yellow-400" : "text-red-500"}`}>
+                    {bet.topScorerPoints > 0 ? `+${bet.topScorerPoints}` : "0"}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Tournament Winner */}
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800">
+            <Trophy size={14} className="text-yellow-400" />
+            <span className="text-sm font-semibold text-yellow-300">זוכה בטורניר</span>
+            {actualWinner && (
+              <span className="mr-auto text-xs font-mono text-white bg-yellow-900/40 border border-yellow-700/40 px-2 py-0.5 rounded">
+                {actualWinner}
+              </span>
+            )}
+          </div>
+          <div className="divide-y divide-gray-800">
+            {participantBets.map((bet, i) => (
+              <div
+                key={i}
+                className={`flex items-center gap-3 px-4 py-2.5 text-xs ${
+                  bet.isMe ? "bg-green-900/20" : ""
+                }`}
+              >
+                <span className={`flex-1 font-medium ${bet.isMe ? "text-green-300" : "text-gray-300"}`}>
+                  {bet.playerName}
+                  {bet.isMe && <span className="text-green-500 font-normal mr-1"> (אני)</span>}
+                </span>
+                <span className="text-gray-400 font-mono truncate max-w-[120px] text-left" dir="ltr">
+                  {bet.tournamentWinner || "—"}
+                </span>
+                {bet.tournamentWinnerPoints != null && (
+                  <span className={`font-bold w-8 text-right ${bet.tournamentWinnerPoints > 0 ? "text-yellow-400" : "text-red-500"}`}>
+                    {bet.tournamentWinnerPoints > 0 ? `+${bet.tournamentWinnerPoints}` : "0"}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
