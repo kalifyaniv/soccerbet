@@ -126,7 +126,7 @@ export default async function ResultsPage() {
       myPred: myPred ? { a: myPred.a, b: myPred.b } : null,
       myPoints: myLog?.finalPoints ?? null,
       myMethod: myLog?.scoringMethod ?? null,
-      isMyMultiplier: multiplierMatchNumbers.has(m.matchNumber),
+      isMultiplierGame: multiplierMatchNumbers.has(m.matchNumber),
       participantBets,
     };
   });

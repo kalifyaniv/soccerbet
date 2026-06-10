@@ -44,7 +44,7 @@ export type MatchRow = {
   myPred: { a: number; b: number } | null;
   myPoints: number | null;
   myMethod: string | null;
-  isMyMultiplier: boolean;
+  isMultiplierGame: boolean;
   participantBets: ParticipantBet[];
 };
 
@@ -185,11 +185,11 @@ export default function ResultsClient({ matches, totalPts, hasPlayer, completedC
 
                   {/* Teams + time */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end" dir="ltr">
                       <span className="text-gray-200">{m.teamA}</span>
                       <span className="text-gray-500 mx-1">vs</span>
                       <span className="text-gray-200">{m.teamB}</span>
-                      {m.isMyMultiplier && (
+                      {m.isMultiplierGame && (
                         <span className="inline-flex items-center gap-0.5 text-xs font-bold text-yellow-400 bg-yellow-900/30 border border-yellow-700/50 px-1.5 py-0.5 rounded">
                           <Zap size={10} />×2
                         </span>
@@ -222,9 +222,9 @@ export default function ResultsClient({ matches, totalPts, hasPlayer, completedC
                         <PointsBadge
                           points={m.myPoints}
                           method={m.myMethod ?? ""}
-                          isMultiplier={m.isMyMultiplier}
+                          isMultiplier={m.isMultiplierGame}
                         />
-                      ) : m.isMyMultiplier ? (
+                      ) : m.isMultiplierGame ? (
                         <span className="text-yellow-600 text-xs">⭐</span>
                       ) : null}
                     </div>
@@ -338,11 +338,11 @@ function MatchRowGroup({
         <span className="text-gray-500 text-xs w-6 shrink-0">#{m.matchNumber}</span>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap justify-end" dir="ltr">
             <span className="text-gray-200">{m.teamA}</span>
             <span className="text-gray-500 mx-1">vs</span>
             <span className="text-gray-200">{m.teamB}</span>
-            {m.isMyMultiplier && (
+            {m.isMultiplierGame && (
               <span className="inline-flex items-center gap-0.5 text-xs font-bold text-yellow-400 bg-yellow-900/30 border border-yellow-700/50 px-1.5 py-0.5 rounded">
                 <Zap size={10} />×2
               </span>
@@ -352,17 +352,6 @@ function MatchRowGroup({
             <div className="text-xs text-gray-500 mt-0.5 text-end" dir="ltr">
               🕐 {m.matchDateLabel} IL
             </div>
-          )}
-        </div>
-
-        {/* My prediction */}
-        <div className="text-center w-16">
-          {m.myPred ? (
-            <span className="font-mono text-gray-400">
-              {m.myPred.a}–{m.myPred.b}
-            </span>
-          ) : (
-            <span className="text-gray-700">—</span>
           )}
         </div>
 
@@ -386,9 +375,9 @@ function MatchRowGroup({
               <PointsBadge
                 points={m.myPoints}
                 method={m.myMethod ?? ""}
-                isMultiplier={m.isMyMultiplier}
+                isMultiplier={m.isMultiplierGame}
               />
-            ) : m.isMyMultiplier ? (
+            ) : m.isMultiplierGame ? (
               <span className="text-yellow-600 text-xs">⭐ מכפיל</span>
             ) : null}
           </div>
