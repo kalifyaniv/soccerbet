@@ -44,7 +44,7 @@ export default async function DashboardPage() {
   const currentEmail = session.user.email;
 
   const now = new Date();
-  now.setDate(now.getDate() + 7)
+  now.setDate(now.getDate())
   const WINDOW_MS = 105 * 60 * 1000; // 90 min game + 15 min buffer
 
   // 1. Find all matches in the active window (started ≤ now ≤ start + 105 min)
