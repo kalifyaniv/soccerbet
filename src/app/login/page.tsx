@@ -28,7 +28,7 @@ export default function LoginPage() {
     if (res?.error) {
       setError("אימייל או סיסמה שגויים");
     } else {
-      router.push("/leaderboard");
+      router.push("/dashboard");
       router.refresh();
     }
   }

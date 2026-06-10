@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { Trophy, BarChart2, List, Settings, LogOut, User } from "lucide-react";
+import { Trophy, BarChart2, List, Settings, LogOut, User, Home } from "lucide-react";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -20,6 +20,10 @@ export default function Navbar() {
         {/* Navigation links */}
         {session && (
           <div className="flex items-center gap-1">
+            <NavLink href="/dashboard">
+              <Home size={16} />
+              בית
+            </NavLink>
             <NavLink href="/leaderboard">
               <BarChart2 size={16} />
               טבלה
