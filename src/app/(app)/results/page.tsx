@@ -27,7 +27,7 @@ export default async function ResultsPage() {
 
   const currentEmail = session.user.email;
 
-  const [matches, allPlayers, allPointLogs, currentPlayer] = await Promise.all([
+  const [matches, allPlayers, allPointLogs, currentPlayer, multiplierGameRecord] = await Promise.all([
     prisma.match.findMany({ where: { eventId: EVENT_ID }, orderBy: { matchNumber: "asc" } }),
     prisma.player.findMany({
       where: { eventId: EVENT_ID, user: { disabled: false } },
@@ -39,16 +39,17 @@ export default async function ResultsPage() {
       where: { eventId_email: { eventId: EVENT_ID, email: currentEmail } },
       include: { playerBet: true },
     }),
+    prisma.multiplierGame.findUnique({ where: { eventId: EVENT_ID } }),
   ]);
+
+  const multiplierMatchNumbers: number[] = multiplierGameRecord
+    ? JSON.parse(multiplierGameRecord.matchNumbers)
+    : [];
 
   // Current player's bets
   const myPredictions: Record<string, { a: number; b: number }> = currentPlayer?.playerBet
     ? JSON.parse(currentPlayer.playerBet.groupPredictions || "{}")
     : {};
-  const myMultipliers: number[] = currentPlayer?.playerBet
-    ? JSON.parse(currentPlayer.playerBet.multiplierGames || "[]")
-    : [];
-
   // All logs keyed by "playerId-matchNumber" for fast lookup
   const allLogsMap = new Map(allPointLogs.map((l) => [`${l.playerId}-${l.matchNumber}`, l]));
   // My logs keyed by matchNumber
@@ -92,7 +93,6 @@ export default async function ResultsPage() {
       .filter((p) => p.playerBet)
       .map((p) => {
         const pPreds = JSON.parse(p.playerBet!.groupPredictions || "{}");
-        const pMuls: number[] = JSON.parse(p.playerBet!.multiplierGames || "[]");
         const pPred = pPreds[m.matchNumber.toString()];
         const pLog = allLogsMap.get(`${p.id}-${m.matchNumber}`) ?? null;
         return {
@@ -102,7 +102,7 @@ export default async function ResultsPage() {
           predB: pPred?.b ?? null,
           points: pLog?.finalPoints ?? null,
           method: pLog?.scoringMethod ?? null,
-          isMultiplier: pMuls.includes(m.matchNumber),
+          isMultiplier: multiplierMatchNumbers.includes(m.matchNumber),
         };
       })
       // "me" first, then alphabetical
@@ -122,7 +122,7 @@ export default async function ResultsPage() {
       myPred: myPred ? { a: myPred.a, b: myPred.b } : null,
       myPoints: myLog?.finalPoints ?? null,
       myMethod: myLog?.scoringMethod ?? null,
-      isMyMultiplier: myMultipliers.includes(m.matchNumber),
+      isMyMultiplier: multiplierMatchNumbers.includes(m.matchNumber),
       participantBets,
     };
   });

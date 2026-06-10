@@ -142,7 +142,6 @@ export default async function DashboardPage() {
 
     const participants: ParticipantRow[] = playerBets.map((bet) => {
       const preds = JSON.parse(bet.groupPredictions || "{}") as Record<string, { a: number; b: number }>;
-      const personalMultipliers = JSON.parse(bet.multiplierGames || "[]") as number[];
       const pred = preds[match.matchNumber.toString()] ?? null;
       const standing = standings.find((s) => s.playerId === bet.playerId);
 
@@ -151,7 +150,7 @@ export default async function DashboardPage() {
         playerName: bet.player.name,
         isCurrentUser: bet.player.email === currentEmail,
         prediction: pred,
-        isPersonalMultiplier: personalMultipliers.includes(match.matchNumber),
+        isPersonalMultiplier: unionMatchNumbers.includes(match.matchNumber),
         currentGroupPoints: standing?.points ?? 0,
       };
     });
@@ -196,10 +195,9 @@ export default async function DashboardPage() {
             const matchBetRows = playerBets
               .map((bet) => {
                 const preds = JSON.parse(bet.groupPredictions || "{}") as Record<string, { a: number; b: number }>;
-                const personalMultipliers = JSON.parse(bet.multiplierGames || "[]") as number[];
                 const pred = preds[match.matchNumber.toString()] ?? null;
                 const isMe = bet.player.email === currentEmail;
-                return { bet, pred, isMe, isPersonalMul: personalMultipliers.includes(match.matchNumber) };
+                return { bet, pred, isMe, isPersonalMul: unionMatchNumbers.includes(match.matchNumber) };
               })
               .sort((a, b) => (b.isMe ? 1 : 0) - (a.isMe ? 1 : 0));
 

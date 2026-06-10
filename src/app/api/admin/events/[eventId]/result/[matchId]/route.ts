@@ -61,12 +61,8 @@ export async function PATCH(
 
     const prediction: ScoringScore = { a: pred.a, b: pred.b };
 
-    // A player's bet is a multiplier only if they selected this match AND it's in the union
-    const playerMultipliers: number[] = JSON.parse(bet.multiplierGames);
-    const isPlayerMultiplier =
-      isMultiplierMatch && playerMultipliers.includes(match.matchNumber);
-
-    const result = calculateMatchPoints(prediction, actual, isPlayerMultiplier);
+    // If any player selected this match as a multiplier, it applies to everyone
+    const result = calculateMatchPoints(prediction, actual, isMultiplierMatch);
 
     // Upsert PointLog for this player+match
     await prisma.pointLog.upsert({
