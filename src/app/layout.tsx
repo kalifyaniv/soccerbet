@@ -17,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="he" dir="rtl" className={`${geist.variable} h-full`}>
-      <body className="min-h-full bg-gray-950 text-gray-100 antialiased flex flex-col">
+      <body className="min-h-full bg-gray-950 text-gray-100 antialiased flex flex-col overflow-x-hidden">
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>

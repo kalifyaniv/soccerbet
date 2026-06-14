@@ -2,15 +2,10 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Trophy, Star, Medal } from "lucide-react";
+import GroupLeadersSection from "@/components/leaderboard/GroupLeadersSection";
 
 const EVENT_ID = "wc2026";
 const GROUP_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
-
-const GROUP_COLORS: Record<string, string> = {
-  A: "#ef4444", B: "#f97316", C: "#eab308", D: "#22c55e",
-  E: "#14b8a6", F: "#3b82f6", G: "#8b5cf6", H: "#ec4899",
-  I: "#6366f1", J: "#f59e0b", K: "#10b981", L: "#64748b",
-};
 
 export const revalidate = 30;
 
@@ -87,7 +82,7 @@ export default async function LeaderboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <StatCard label="משתתפים" value={players.length} />
         <StatCard label="הגישו הימורים" value={players.filter((p) => p.playerBet?.status === "locked").length} />
         <StatCard label="משחקים הושלמו" value={matchesCompleted} />
@@ -102,13 +97,13 @@ export default async function LeaderboardPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wide">
-                <th className="text-right px-4 py-3 w-10">#</th>
-                <th className="text-right px-4 py-3">שם</th>
-                <th className="text-right px-4 py-3">שלב הבתים</th>
-                <th className="text-right px-4 py-3">מלך השערים</th>
-                <th className="text-right px-4 py-3">זוכה</th>
-                <th className="text-right px-4 py-3 font-bold">סה״כ</th>
-                <th className="text-right px-4 py-3">סטטוס</th>
+                <th className="text-right px-3 sm:px-4 py-3 w-8 sm:w-10">#</th>
+                <th className="text-right px-3 sm:px-4 py-3">שם</th>
+                <th className="hidden sm:table-cell text-right px-4 py-3">שלב הבתים</th>
+                <th className="hidden sm:table-cell text-right px-4 py-3">מלך השערים</th>
+                <th className="hidden sm:table-cell text-right px-4 py-3">זוכה</th>
+                <th className="text-right px-3 sm:px-4 py-3 font-bold">סה״כ</th>
+                <th className="text-right px-3 sm:px-4 py-3">סטטוס</th>
               </tr>
             </thead>
             <tbody>
@@ -121,22 +116,22 @@ export default async function LeaderboardPage() {
                       isMe ? "bg-green-900/20 border-green-700/30" : "hover:bg-gray-800/30"
                     }`}
                   >
-                    <td className="px-4 py-3"><RankBadge rank={idx + 1} /></td>
-                    <td className="px-4 py-3 font-medium text-white">
+                    <td className="px-3 sm:px-4 py-3"><RankBadge rank={idx + 1} /></td>
+                    <td className="px-3 sm:px-4 py-3 font-medium text-white">
                       {player.name}
                       {isMe && <span className="mr-2 text-xs text-green-400">(אני)</span>}
                     </td>
-                    <td className="px-4 py-3 text-gray-300">{player.playerBet?.groupStagePoints ?? 0}</td>
-                    <td className="px-4 py-3">
+                    <td className="hidden sm:table-cell px-4 py-3 text-gray-300">{player.playerBet?.groupStagePoints ?? 0}</td>
+                    <td className="hidden sm:table-cell px-4 py-3">
                       <PointsBadge points={player.playerBet?.kingOfGoalsPoints} max={10} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="hidden sm:table-cell px-4 py-3">
                       <PointsBadge points={player.playerBet?.tournamentWinnerPoints} max={10} />
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3">
                       <span className="text-lg font-bold text-white">{player.totalPoints}</span>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 sm:px-4 py-3">
                       {player.playerBet?.status === "locked" ? (
                         <span className="text-xs text-green-400 bg-green-900/30 px-2 py-0.5 rounded-full">✓ נעול</span>
                       ) : (
@@ -160,37 +155,11 @@ export default async function LeaderboardPage() {
 
       {/* Per-בית leaders */}
       {matchesCompleted > 0 && (
-        <div className="space-y-3">
-          <h2 className="font-semibold text-white flex items-center gap-2">
-            <Trophy size={16} className="text-yellow-400" />
-            מובילי הבתים (5% לכל מנצח)
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {GROUP_LETTERS.map((letter) => {
-              const leaders = groupLeaders[letter] ?? [];
-              const leader = leaders[0];
-              return (
-                <div
-                  key={letter}
-                  className="bg-gray-900 border border-gray-800 rounded-xl p-3"
-                  style={{ borderTopColor: GROUP_COLORS[letter], borderTopWidth: 2 }}
-                >
-                  <div className="text-xs font-medium mb-2" style={{ color: GROUP_COLORS[letter] }}>
-                    בית {letter}
-                  </div>
-                  {leader && leader.pts > 0 ? (
-                    <>
-                      <div className="text-white font-semibold text-sm truncate">{leader.name}</div>
-                      <div className="text-gray-400 text-xs mt-0.5">{leader.pts} נקודות</div>
-                    </>
-                  ) : (
-                    <div className="text-gray-600 text-xs">אין תוצאות עדיין</div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <GroupLeadersSection
+          eventId={EVENT_ID}
+          groupLetters={GROUP_LETTERS}
+          groupLeaders={groupLeaders}
+        />
       )}
 
       {/* Prize breakdown */}
@@ -201,9 +170,9 @@ export default async function LeaderboardPage() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-      <div className="text-2xl font-bold text-white">{value}</div>
-      <div className="text-sm text-gray-400 mt-1">{label}</div>
+    <div className="bg-gray-900 border border-gray-800 rounded-xl p-2.5 sm:p-4 text-center">
+      <div className="text-xl sm:text-2xl font-bold text-white">{value}</div>
+      <div className="text-xs sm:text-sm text-gray-400 mt-1">{label}</div>
     </div>
   );
 }

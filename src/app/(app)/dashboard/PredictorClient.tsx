@@ -122,12 +122,12 @@ export default function PredictorClient({ matches }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wide">
-                <th className="text-right px-3 py-2 w-8">#</th>
-                <th className="text-right px-3 py-2">שחקן</th>
-                <th className="text-center px-3 py-2">תחזית</th>
-                <th className="text-center px-3 py-2">נקודות נוספות</th>
-                <th className="text-center px-3 py-2">סה״כ בבית</th>
-                <th className="text-center px-3 py-2 w-8">שינוי</th>
+                <th className="text-right px-2 sm:px-3 py-2 w-7 sm:w-8">#</th>
+                <th className="text-right px-2 sm:px-3 py-2">שחקן</th>
+                <th className="text-center px-2 sm:px-3 py-2">תחזית</th>
+                <th className="hidden sm:table-cell text-center px-3 py-2">נקודות נוספות</th>
+                <th className="text-center px-2 sm:px-3 py-2">סה״כ</th>
+                <th className="text-center px-2 sm:px-3 py-2 w-8">שינוי</th>
               </tr>
             </thead>
             <tbody>
@@ -141,12 +141,12 @@ export default function PredictorClient({ matches }: Props) {
                       p.isCurrentUser ? "bg-green-900/20" : "hover:bg-gray-800/30"
                     }`}
                   >
-                    <td className="px-3 py-2.5 text-gray-400 font-mono text-center">{p.newRank}</td>
-                    <td className="px-3 py-2.5 font-medium text-white">
+                    <td className="px-2 sm:px-3 py-2.5 text-gray-400 font-mono text-center">{p.newRank}</td>
+                    <td className="px-2 sm:px-3 py-2.5 font-medium text-white">
                       {p.playerName}
                       {p.isCurrentUser && <span className="mr-2 text-xs text-green-400">(אני)</span>}
                     </td>
-                    <td className="px-3 py-2.5 text-center font-mono text-gray-200">
+                    <td className="px-2 sm:px-3 py-2.5 text-center font-mono text-gray-200">
                       {p.prediction ? (
                         <span className="inline-flex items-center gap-1">
                           {p.prediction.a}–{p.prediction.b}
@@ -158,7 +158,7 @@ export default function PredictorClient({ matches }: Props) {
                         <span className="text-gray-600">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-center">
+                    <td className="hidden sm:table-cell px-3 py-2.5 text-center">
                       {hasValidInput && p.prediction ? (
                         <span className={`font-semibold ${p.hypotheticalPoints > 0 ? "text-green-400" : "text-gray-500"}`}>
                           +{p.hypotheticalPoints}
@@ -167,10 +167,10 @@ export default function PredictorClient({ matches }: Props) {
                         <span className="text-gray-600">—</span>
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-center">
+                    <td className="px-2 sm:px-3 py-2.5 text-center">
                       <span className="text-lg font-bold text-white">{p.newGroupTotal}</span>
                     </td>
-                    <td className="px-3 py-2.5 text-center">
+                    <td className="px-2 sm:px-3 py-2.5 text-center">
                       {hasValidInput && prevRank != null && rankDelta !== 0 ? (
                         rankDelta > 0 ? (
                           <span className="text-green-400 inline-flex items-center gap-0.5 text-xs font-semibold">

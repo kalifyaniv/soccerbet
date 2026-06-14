@@ -304,15 +304,15 @@ export default function BettingForm({
               return (
                 <div
                   key={m.id}
-                  className={`flex items-center gap-3 px-4 py-3 ${
+                  className={`flex items-center gap-2 px-3 sm:px-4 py-3 ${
                     isMultiplier ? "bg-yellow-900/10" : ""
                   }`}
                 >
-                  <span className="text-gray-500 text-xs w-6 shrink-0">#{m.matchNumber}</span>
+                  <span className="text-gray-500 text-xs w-5 shrink-0 text-center">#{m.matchNumber}</span>
 
                   {/* Score input */}
-                  <div className="flex items-center gap-2 flex-1">
-                    <span className="text-white text-sm font-medium min-w-24 text-left">{m.teamA}</span>
+                  <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+                    <span className="text-white text-xs sm:text-sm font-medium flex-1 min-w-0 truncate text-left">{m.teamA}</span>
                     <input
                       type="number"
                       min={0}
@@ -321,9 +321,9 @@ export default function BettingForm({
                       onChange={(e) => setScore(m.matchNumber, "a", e.target.value)}
                       disabled={!isBettingOpen}
                       placeholder="0"
-                      className="w-12 text-center bg-gray-800 border border-gray-700 rounded-lg py-1.5 text-white font-mono text-lg focus:outline-none focus:border-green-500 disabled:opacity-50"
+                      className="w-10 sm:w-12 text-center bg-gray-800 border border-gray-700 rounded-lg py-1.5 text-white font-mono text-base sm:text-lg focus:outline-none focus:border-green-500 disabled:opacity-50 shrink-0"
                     />
-                    <span className="text-gray-500 font-bold">–</span>
+                    <span className="text-gray-500 font-bold shrink-0">–</span>
                     <input
                       type="number"
                       min={0}
@@ -332,9 +332,9 @@ export default function BettingForm({
                       onChange={(e) => setScore(m.matchNumber, "b", e.target.value)}
                       disabled={!isBettingOpen}
                       placeholder="0"
-                      className="w-12 text-center bg-gray-800 border border-gray-700 rounded-lg py-1.5 text-white font-mono text-lg focus:outline-none focus:border-green-500 disabled:opacity-50"
+                      className="w-10 sm:w-12 text-center bg-gray-800 border border-gray-700 rounded-lg py-1.5 text-white font-mono text-base sm:text-lg focus:outline-none focus:border-green-500 disabled:opacity-50 shrink-0"
                     />
-                    <span className="text-white text-sm font-medium min-w-24">{m.teamB}</span>
+                    <span className="text-white text-xs sm:text-sm font-medium flex-1 min-w-0 truncate">{m.teamB}</span>
                   </div>
 
                   {/* Multiplier toggle */}

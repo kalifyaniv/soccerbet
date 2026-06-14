@@ -206,7 +206,7 @@ export default function ResultsClient({ matches, totalPts, hasPlayer, completedC
                   <div className="text-center w-14 shrink-0">
                     {m.status === "completed" && m.finalScoreA != null ? (
                       <span className="font-mono font-bold text-white">
-                        {m.finalScoreA}–{m.finalScoreB}
+                        {m.finalScoreB}–{m.finalScoreA}
                       </span>
                     ) : m.status === "live" ? (
                       <span className="text-red-400 animate-pulse text-xs">LIVE</span>

@@ -49,8 +49,16 @@ export default function AdminResultsClient({
   const [savingBonus, setSavingBonus] = useState(false);
   const [bonusMsg, setBonusMsg] = useState("");
   const [openGroup, setOpenGroup] = useState<string | null>("A");
+  const [showCompleted, setShowCompleted] = useState(false);
 
   const groups = [...new Set(matchData.map((m) => m.groupLetter))].sort();
+
+  const now = Date.now();
+  const pastMatches = matchData
+    .filter((m) => m.matchDate && new Date(m.matchDate).getTime() < now)
+    .sort((a, b) => new Date(b.matchDate!).getTime() - new Date(a.matchDate!).getTime());
+  const pendingPastCount = pastMatches.filter((m) => m.status !== "completed").length;
+  const visiblePastMatches = showCompleted ? pastMatches : pastMatches.filter((m) => m.status !== "completed");
 
   async function saveResult(match: MatchRow) {
     const a = parseInt(scoreA);
@@ -141,6 +149,128 @@ export default function AdminResultsClient({
         </button>
       </div>
 
+      {/* Past games — need result entry */}
+      {pastMatches.length > 0 && (
+        <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+            <span className="font-semibold text-sm text-white">⏱ משחקים שהסתיימו</span>
+            <div className="flex items-center gap-2">
+              {pendingPastCount > 0 ? (
+                <span className="text-xs bg-orange-900/40 text-orange-300 border border-orange-700/50 px-2 py-0.5 rounded-full">
+                  {pendingPastCount} ממתינים להזנה
+                </span>
+              ) : (
+                <span className="text-xs text-green-400">הכל הוזן ✓</span>
+              )}
+              <button
+                onClick={() => setShowCompleted((v) => !v)}
+                className={`text-xs px-2 py-0.5 rounded border transition-colors ${
+                  showCompleted
+                    ? "bg-gray-700 text-gray-200 border-gray-600"
+                    : "text-gray-500 border-gray-700 hover:text-gray-300"
+                }`}
+              >
+                {showCompleted ? "הסתר שהוזנו" : "הצג שהוזנו"}
+              </button>
+            </div>
+          </div>
+          <div className="divide-y divide-gray-800">
+            {visiblePastMatches.map((m) => (
+              <div key={m.id} className={`px-4 py-3 text-sm ${m.status !== "completed" ? "bg-orange-950/20" : ""}`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span
+                    className="shrink-0 text-xs font-bold px-1.5 py-0.5 rounded border"
+                    style={{
+                      color: GROUP_COLORS[m.groupLetter],
+                      borderColor: GROUP_COLORS[m.groupLetter] + "55",
+                      backgroundColor: GROUP_COLORS[m.groupLetter] + "15",
+                    }}
+                  >
+                    {m.groupLetter}
+                  </span>
+                  <span className="text-gray-500 text-xs w-5 shrink-0">#{m.matchNumber}</span>
+                  <span className="text-gray-200">{m.teamA}</span>
+                  <span className="text-gray-500 text-xs">vs</span>
+                  <span className="text-gray-200">{m.teamB}</span>
+                  {m.matchDateLabel && (
+                    <span className="text-xs text-gray-500 ms-auto" dir="ltr">
+                      🕐 {m.matchDateLabel} IL
+                    </span>
+                  )}
+                </div>
+
+                {editingId === m.id ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2 ps-8" dir="ltr">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-yellow-400 font-medium">{m.teamA}</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={scoreA}
+                        onChange={(e) => setScoreA(e.target.value)}
+                        autoFocus
+                        className="w-12 text-center bg-gray-800 border border-green-600 rounded-lg py-1 text-white font-mono text-base focus:outline-none"
+                      />
+                    </div>
+                    <span className="text-gray-400 font-bold">–</span>
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={scoreB}
+                        onChange={(e) => setScoreB(e.target.value)}
+                        className="w-12 text-center bg-gray-800 border border-green-600 rounded-lg py-1 text-white font-mono text-base focus:outline-none"
+                      />
+                      <span className="text-xs text-yellow-400 font-medium">{m.teamB}</span>
+                    </div>
+                    <button
+                      onClick={() => saveResult(m)}
+                      disabled={saving === m.id}
+                      className="text-xs bg-green-700 hover:bg-green-600 text-white px-2 py-1 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {saving === m.id ? "..." : "שמור"}
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="text-xs text-gray-500 hover:text-white px-2 py-1"
+                    >
+                      ביטול
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 ps-8">
+                    {m.status === "completed" ? (
+                      <span className="font-mono font-bold text-white text-base" dir="ltr">
+                        {m.finalScoreB} – {m.finalScoreA}
+                      </span>
+                    ) : (
+                      <span className="text-orange-400 text-xs font-medium">לא הוזן</span>
+                    )}
+                    <button
+                      onClick={() => {
+                        setEditingId(m.id);
+                        setScoreA(m.finalScoreA?.toString() ?? "");
+                        setScoreB(m.finalScoreB?.toString() ?? "");
+                      }}
+                      className="text-xs text-blue-400 hover:text-blue-300 underline"
+                    >
+                      {m.status === "completed" ? "ערוך" : "הזן"}
+                    </button>
+                    {m.status === "completed" ? (
+                      <CheckCircle size={14} className="text-green-500" />
+                    ) : (
+                      <Clock size={14} className="text-orange-400" />
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Match results by group */}
       <div className="space-y-3">
         {groups.map((g) => {
@@ -160,43 +290,47 @@ export default function AdminResultsClient({
               {openGroup === g && (
                 <div className="divide-y divide-gray-800">
                   {groupMatches.map((m) => (
-                    <div key={m.id} className="flex items-center gap-3 px-4 py-3 text-sm">
-                      <span className="text-gray-500 text-xs w-6 shrink-0">#{m.matchNumber}</span>
-
-                      <div className="flex-1">
-                        <div>
-                          <span className="text-gray-200">{m.teamA}</span>
-                          <span className="text-gray-500 mx-2">vs</span>
-                          <span className="text-gray-200">{m.teamB}</span>
-                        </div>
+                    <div key={m.id} className="px-4 py-3 text-sm">
+                      {/* Match header */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-gray-500 text-xs w-6 shrink-0">#{m.matchNumber}</span>
+                        <span className="text-gray-200">{m.teamA}</span>
+                        <span className="text-gray-500 text-xs">vs</span>
+                        <span className="text-gray-200">{m.teamB}</span>
                         {m.matchDateLabel && (
-                          <div className="text-xs text-gray-500 mt-0.5 text-end" dir="ltr">
+                          <span className="text-xs text-gray-500 ms-auto" dir="ltr">
                             🕐 {m.matchDateLabel} IL
-                          </div>
+                          </span>
                         )}
                       </div>
 
-                      {/* Result or edit */}
+                      {/* Result or edit — always LTR so team↔score mapping is unambiguous */}
                       {editingId === m.id ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            min={0}
-                            max={20}
-                            value={scoreA}
-                            onChange={(e) => setScoreA(e.target.value)}
-                            autoFocus
-                            className="w-12 text-center bg-gray-800 border border-green-600 rounded-lg py-1 text-white font-mono text-base focus:outline-none"
-                          />
-                          <span className="text-gray-400">–</span>
-                          <input
-                            type="number"
-                            min={0}
-                            max={20}
-                            value={scoreB}
-                            onChange={(e) => setScoreB(e.target.value)}
-                            className="w-12 text-center bg-gray-800 border border-green-600 rounded-lg py-1 text-white font-mono text-base focus:outline-none"
-                          />
+                        <div className="mt-2 flex flex-wrap items-center gap-2 ps-8" dir="ltr">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-yellow-400 font-medium">{m.teamA}</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={20}
+                              value={scoreA}
+                              onChange={(e) => setScoreA(e.target.value)}
+                              autoFocus
+                              className="w-12 text-center bg-gray-800 border border-green-600 rounded-lg py-1 text-white font-mono text-base focus:outline-none"
+                            />
+                          </div>
+                          <span className="text-gray-400 font-bold">–</span>
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="number"
+                              min={0}
+                              max={20}
+                              value={scoreB}
+                              onChange={(e) => setScoreB(e.target.value)}
+                              className="w-12 text-center bg-gray-800 border border-green-600 rounded-lg py-1 text-white font-mono text-base focus:outline-none"
+                            />
+                            <span className="text-xs text-yellow-400 font-medium">{m.teamB}</span>
+                          </div>
                           <button
                             onClick={() => saveResult(m)}
                             disabled={saving === m.id}
@@ -212,10 +346,10 @@ export default function AdminResultsClient({
                           </button>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 ps-8">
                           {m.status === "completed" ? (
-                            <span className="font-mono font-bold text-white text-base">
-                              {m.finalScoreA} – {m.finalScoreB}
+                            <span className="font-mono font-bold text-white text-base" dir="ltr">
+                              {m.finalScoreB} – {m.finalScoreA}
                             </span>
                           ) : (
                             <span className="text-gray-600 text-xs">לא הוזן</span>
